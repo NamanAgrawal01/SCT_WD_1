@@ -1,0 +1,308 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Interactive Navigation Menu</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    background: #ffffff;
+    color: #1f2328;
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  nav#main-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    background: transparent;
+    transition: background 0.35s ease, box-shadow 0.35s ease, height 0.35s ease;
+  }
+
+  /* Scrolled state — added by JS */
+  nav#main-nav.scrolled {
+    background: #1f2328;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    height: 54px;
+  }
+
+  /* ── LOGO ── */
+  .nav-logo {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    color: #1f2328;
+    text-decoration: none;
+    transition: color 0.35s ease;
+    white-space: nowrap;
+  }
+  nav#main-nav.scrolled .nav-logo {
+    color: #ffffff;
+  }
+
+  /* ── LINKS ── */
+  .nav-links {
+    display: flex;
+    list-style: none;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .nav-links a {
+    position: relative;
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2328;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: color 0.25s ease, background 0.25s ease;
+    overflow: hidden;
+  }
+
+  /* Underline slide-in */
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 2px; left: 14px; right: 14px;
+    height: 2px;
+    background: #3b82d4;
+    border-radius: 2px;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.25s ease;
+  }
+
+  .nav-links a:hover::after,
+  .nav-links a.active::after {
+    transform: scaleX(1);
+  }
+
+  .nav-links a:hover {
+    color: #3b82d4;
+    background: rgba(59,130,212,0.08);
+  }
+
+  /* Scrolled link colours */
+  nav#main-nav.scrolled .nav-links a {
+    color: #d1d5db;
+  }
+  nav#main-nav.scrolled .nav-links a:hover {
+    color: #ffffff;
+    background: rgba(255,255,255,0.1);
+  }
+  nav#main-nav.scrolled .nav-links a::after {
+    background: #7c5cd8;
+  }
+
+  /* Active link */
+  .nav-links a.active {
+    color: #3b82d4;
+  }
+  nav#main-nav.scrolled .nav-links a.active {
+    color: #ffffff;
+  }
+
+  /* ── CTA BUTTON ── */
+  .nav-cta {
+    padding: 7px 18px;
+    font-size: 13.5px;
+    font-weight: 600;
+    border-radius: 7px;
+    text-decoration: none;
+    background: #3b82d4;
+    color: #ffffff !important;
+    transition: background 0.25s ease, transform 0.15s ease;
+  }
+  .nav-cta::after { display: none !important; }
+  .nav-cta:hover {
+    background: #2563b0 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+  }
+  nav#main-nav.scrolled .nav-cta {
+    background: #7c5cd8;
+    color: #ffffff !important;
+  }
+  nav#main-nav.scrolled .nav-cta:hover {
+    background: #6340bb !important;
+  }
+
+  /* ── SCROLL INDICATOR ── */
+  #scroll-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, #3b82d4, #7c5cd8);
+    z-index: 1100;
+    transition: width 0.1s linear;
+  }
+
+  /* ── PAGE CONTENT ── */
+  .page-content {
+    padding-top: 64px;
+  }
+
+  section {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 40px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  section:nth-child(odd) { background: #ffffff; }
+  section:nth-child(even) { background: #f7f8fa; }
+
+  section h2 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #1f2328;
+    letter-spacing: -0.5px;
+  }
+
+  section p {
+    max-width: 520px;
+    text-align: center;
+    color: #57606a;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .section-badge {
+    display: inline-block;
+    margin-bottom: 14px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    border-radius: 20px;
+    background: rgba(59,130,212,0.1);
+    color: #3b82d4;
+  }
+  section:nth-child(even) .section-badge {
+    background: rgba(124,92,216,0.1);
+    color: #7c5cd8;
+  }
+
+  /* ── SCROLL HINT ── */
+  .scroll-hint {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .scroll-hint.hidden { opacity: 0; }
+  .scroll-hint span {
+    font-size: 11px;
+    color: #57606a;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .scroll-arrow {
+    width: 22px;
+    height: 22px;
+    border-right: 2px solid #57606a;
+    border-bottom: 2px solid #57606a;
+    transform: rotate(45deg);
+    animation: bounce 1.2s infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: rotate(45deg) translateY(0); }
+    50%       { transform: rotate(45deg) translateY(5px); }
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 12px;
+    color: #57606a;
+    border-top: 1px solid #e5e7eb;
+  }
+</style>
+</head>
+<body>
+
+
+<div id="scroll-bar"></div>
+
+
+<nav id="main-nav">
+  <a href="#home" class="nav-logo">◆ BrandMark</a>
+  <ul class="nav-links">
+    <li><a href="#home" class="active">Home</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#portfolio">Portfolio</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#contact" class="nav-cta">Get Started</a></li>
+  </ul>
+</nav>
+
+
+<div class="page-content">
+  <section id="home">
+    <span class="section-badge">Welcome</span>
+    <h2>Hello, World.</h2>
+    <p>Scroll down to see the navigation bar transform — it switches from a transparent style to a sleek dark bar with a purple accent as you move through the page.</p>
+  </section>
+
+  <section id="features">
+    <span class="section-badge">Features</span>
+    <h2>What We Do</h2>
+    <p>Hover over each menu item to see a smooth underline animation and colour shift. The active section is automatically highlighted as you scroll.</p>
+  </section>
+
+  <section id="about">
+    <span class="section-badge">About</span>
+    <h2>Our Story</h2>
+    <p>The navigation stays fixed at the top of the viewport so it's always reachable — no matter how far down the page you scroll.</p>
+  </section>
+
+  <section id="portfolio">
+    <span class="section-badge">Portfolio</span>
+    <h2>Our Work</h2>
+    <p>A thin gradient progress bar at the very top of the screen tracks how far through the page you've read — a subtle but useful touch.</p>
+  </section>
+
+  <section id="contact">
+    <span class="section-badge">Contact</span>
+    <h2>Get In Touch</h2>
+    <p>The "Get Started" call-to-action button shifts from blue to purple when the nav is in its scrolled state, maintaining visual harmony throughout.</p>
+  </section>
+</div>
+
+
+<div class="scroll-hint" id="scroll-hint">
+  <span>Scroll</span>
+  <div class="scroll-arrow"></div>
+</div>
+
+<footer>Made with IBM Bob</footer>
+
+
+</body>
+</html>
